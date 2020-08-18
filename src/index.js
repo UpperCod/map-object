@@ -2,7 +2,6 @@ import path from "path";
 import yaml from "js-yaml";
 import getProp from "@uppercod/get-prop";
 import createCache from "@uppercod/cache";
-import { throws } from "assert";
 
 const cache = createCache();
 
@@ -15,8 +14,8 @@ const regPropMaps = RegExp(`^\\$(${propMaps.join("|")})$`);
 const regMapCode = RegExp(`\\$(${propMaps.join("|")})`);
 /**
  *
- * @param {*} config.file - Name of the file to use as the basis for the relative search
- * @param {*} config.code - File code config.file
+ * @param {string} config.file - Name of the file to use as the basis for the relative search
+ * @param {string} config.code - File code config.file
  * @param {(src)=>Promise<string>} config.readFile - External function for file resolution
  * @param {object} parallel - object that stores recurring queries resolved in parallel, this avoids generating double read queries
  */
@@ -28,8 +27,8 @@ export default function loader({ file, code, readFile }, parallel = {}) {
     });
 }
 /**
- * @param {*} config.file - Name of the file to use as the basis for the relative search
- * @param {*} config.code - File code config.file
+ * @param {string} config.file - Name of the file to use as the basis for the relative search
+ * @param {string} config.code - File code config.file
  * @param {(src)=>Promise<string>} config.readFile - External function for file resolution
  */
 function load({ file, code, readFile }) {
@@ -46,22 +45,22 @@ function load({ file, code, readFile }) {
                     src = path.join(dir, src);
                     try {
                         root = await readFile(src).then((code) =>
-                            load({ file, code, readFile })
+                            load({ file: src, code, readFile })
                         );
                     } catch (e) {
-                        throws`${file}  The file ${src} required by the document cannot be found`;
+                        throw `File ${src} imported by ${file} does not exist`;
                     }
                 }
                 return prop ? getProp(root, prop) : src ? root : null;
             }
             if (type == "$fn") {
-                const [src, args] = [].concat(value);
+                let [src, args] = [].concat(value);
                 src = path.join(dir, src);
                 let fn;
                 try {
-                    fn = require(file);
+                    fn = require(src);
                 } catch (e) {
-                    throws`${file}: The file ${src} required by the document cannot be found`;
+                    throw `File ${src} imported by ${file} does not exist`;
                 }
                 return await fn(args);
             }
