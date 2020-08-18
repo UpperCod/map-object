@@ -1,0 +1,10 @@
+$ref: ./c/c.yaml
+a: 1
+c:
+    $ref: ~b.name
+users:
+    $ref: users.json
+get:
+    $fn:
+        - ./users.js
+        - age: master

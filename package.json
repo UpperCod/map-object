@@ -1,6 +1,6 @@
 {
-    "name": "pkg_name",
-    "version": "0.0.0",
+    "name": "@uppercod/yaml",
+    "version": "1.0.0",
     "description": "Capture text fragments based on regular expressions that are executed for each line of the text",
     "main": "cjs.js",
     "module": "esm.js",
@@ -8,6 +8,7 @@
         "access": "public"
     },
     "scripts": {
+        "example": "node -r esm example.js",
         "build": "rollup -c",
         "dev": "rollup -c -w",
         "test": "ava",
@@ -15,15 +16,19 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/UpperCod/pkg_name.git"
+        "url": "git+https://github.com/UpperCod/yaml.git"
     },
     "author": "UpperCod",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/UpperCod/pkg_name/issues"
+        "url": "https://github.com/UpperCod/yaml/issues"
     },
-    "homepage": "https://github.com/UpperCod/pkg_name#readme",
-    "dependencies": {},
+    "homepage": "https://github.com/UpperCod/yaml#readme",
+    "dependencies": {
+        "@uppercod/cache": "^1.0.0",
+        "@uppercod/get-prop": "^1.0.0",
+        "js-yaml": "^3.14.0"
+    },
     "devDependencies": {
         "@rollup/plugin-node-resolve": "^8.1.0",
         "ava": "^3.10.1",
