@@ -34,11 +34,13 @@ getData().then(console.log);
 ## Api
 
 ```ts
-function parse({
-    file: string,
-    code: string,
-    readFile: (src: string) => string,
-},parallel?:Object):Promise<Object|any[]>;
+interface config {
+    file: string;
+    code: string;
+    readFile: (src: string) => any;
+}
+
+export default function parse(config: config, parallel?: Object): Promise<any>;
 ```
 
 Donde:
