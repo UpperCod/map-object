@@ -1,5 +1,3 @@
-import * as Interal from "./internal";
-
 declare module "@uppercod/yaml" {
     interface config {
         file: string;

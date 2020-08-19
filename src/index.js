@@ -1,3 +1,4 @@
+import url from "url";
 import path from "path";
 import yaml from "js-yaml";
 import getProp from "@uppercod/get-prop";
@@ -35,14 +36,14 @@ function load({ file, code, readFile }) {
     const { dir } = path.parse(file);
     const raw = isObject(code);
     const data = raw ? code : cache(parse, code);
-    if (raw || regMapCode.test(code)) {
+    if (!isUrl(file) && (raw || regMapCode.test(code))) {
         return mapRef(data, async (type, value, root) => {
             if (type == "$ref") {
                 let [, src, prop] = value.match(
                     /([^~#]*)(?:(?:~|#\/){0,1}(.+)){0,1}/
                 );
                 if (src) {
-                    src = path.join(dir, src);
+                    src = isUrl(src) ? src : path.join(dir, src);
                     try {
                         root = await readFile(src).then((code) =>
                             load({ file: src, code, readFile })
@@ -107,3 +108,9 @@ async function mapRef(data, map, root) {
     }
     return data;
 }
+
+/**
+ * Determine if the file starts as url
+ * @param {string} file
+ */
+export let isUrl = (file) => /^(http(s){0,1}:){0,1}\/\//.test(file);
