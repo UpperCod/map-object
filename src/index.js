@@ -8,6 +8,14 @@ const cache = createCache();
 
 const isObject = (value) => value && typeof value == "object";
 
+/**
+ * Determine if the file starts as url
+ * @param {string} file
+ */
+const isUrl = (file) => /^(http(s){0,1}:){0,1}\/\//.test(file);
+
+const isYaml = (file) => /\.(yaml|yml)$/.test(file);
+
 const parse = (code) => yaml.safeLoad(code);
 
 const propMaps = ["ref", "fn"];
@@ -35,7 +43,7 @@ export default function loader({ file, code, readFile }, parallel = {}) {
 function load({ file, code, readFile }) {
     const { dir } = path.parse(file);
     const raw = isObject(code);
-    const data = raw ? code : cache(parse, code);
+    const data = raw || !isYaml(file) ? code : cache(parse, code);
     if (!isUrl(file) && (raw || regMapCode.test(code))) {
         return mapRef(data, async (type, value, root) => {
             if (type == "$ref") {
@@ -108,9 +116,3 @@ async function mapRef(data, map, root) {
     }
     return data;
 }
-
-/**
- * Determine if the file starts as url
- * @param {string} file
- */
-let isUrl = (file) => /^(http(s){0,1}:){0,1}\/\//.test(file);
