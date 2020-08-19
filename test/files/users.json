@@ -1,6 +1,9 @@
 [
     {
         "name": "Matias",
-        "alias": "@uppercod"
+        "alias": "@uppercod",
+        "text": {
+            "$ref": "text.txt"
+        }
     }
 ]

@@ -1,4 +1,3 @@
-import url from "url";
 import path from "path";
 import yaml from "js-yaml";
 import getProp from "@uppercod/get-prop";
@@ -15,6 +14,8 @@ const isObject = (value) => value && typeof value == "object";
 const isUrl = (file) => /^(http(s){0,1}:){0,1}\/\//.test(file);
 
 const isYaml = (file) => /\.(yaml|yml)$/.test(file);
+
+const isJson = (file) => /\.json$/.test(file);
 
 const parse = (code) => yaml.safeLoad(code);
 
@@ -43,7 +44,13 @@ export default function loader({ file, code, readFile }, parallel = {}) {
 function load({ file, code, readFile }) {
     const { dir } = path.parse(file);
     const raw = isObject(code);
-    const data = raw || !isYaml(file) ? code : cache(parse, code);
+    const data = raw
+        ? code
+        : isJson(file)
+        ? JSON.parse(code)
+        : isYaml(file)
+        ? cache(parse, code)
+        : code;
     if (!isUrl(file) && (raw || regMapCode.test(code))) {
         return mapRef(data, async (type, value, root) => {
             if (type == "$ref") {

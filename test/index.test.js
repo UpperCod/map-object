@@ -8,7 +8,7 @@ test("simple replace", async (t) => {
         b: { name: "b" },
         a: 1,
         c: "b",
-        users: [{ name: "Matias", alias: "@uppercod" }],
+        users: [{ name: "Matias", alias: "@uppercod", text: "lorem...\n" }],
         get: ["a", "b"],
     };
 
