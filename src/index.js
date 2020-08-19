@@ -113,4 +113,4 @@ async function mapRef(data, map, root) {
  * Determine if the file starts as url
  * @param {string} file
  */
-export let isUrl = (file) => /^(http(s){0,1}:){0,1}\/\//.test(file);
+let isUrl = (file) => /^(http(s){0,1}:){0,1}\/\//.test(file);
