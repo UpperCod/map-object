@@ -93,14 +93,16 @@ function load({ file, code, readFile }) {
  * @param {object|any[]} [root] - context to use as root to scan the $ref
  */
 async function mapRef(data, map, root) {
+    // clone to remove reference from cache
+    const isArrayData = Array.isArray(data);
+    data = isArrayData ? [...data] : { ...data };
     for (let prop in data) {
         if (regPropMaps.test(prop)) {
-            let value = await map(prop, data[prop], root);
+            const value = await map(prop, data[prop], root);
             if (isObject(value)) {
-                let nextData = { ...data };
-                delete nextData[prop];
-                let nextValue = { ...value, ...nextData };
-                let nextRoot = root == data ? nextValue : root || nextValue;
+                delete data[prop];
+                const nextValue = isArrayData ? data : { ...value, ...data };
+                const nextRoot = root == data ? nextValue : root || nextValue;
                 if (Array.isArray(value)) {
                     return Promise.all(
                         value.map((value) =>
@@ -109,12 +111,12 @@ async function mapRef(data, map, root) {
                                 : value
                         )
                     );
-                } else {
+                }
+                if (isObject(nextValue)) {
                     return await mapRef(nextValue, map, nextRoot);
                 }
-            } else {
-                return value;
             }
+            return value;
         } else {
             if (isObject(data[prop])) {
                 data[prop] = await mapRef(data[prop], map, root || data[prop]);
