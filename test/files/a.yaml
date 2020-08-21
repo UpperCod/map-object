@@ -4,7 +4,3 @@ c:
     $ref: ~b.name
 users:
     $ref: users.json
-get:
-    $fn:
-        - ./users.js
-        - age: master

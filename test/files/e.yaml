@@ -1,1 +1,4 @@
-$ref: https://jsonplaceholder.typicode.com/todos/1
+$ref: c/c.yaml
+label: e
+a:
+    $ref: a.yaml
