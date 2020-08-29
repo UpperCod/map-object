@@ -19,6 +19,7 @@ declare module "@uppercod/map-object" {
 
     export interface PluginContext {
         load(data: Data): Promise<ObjectFill | ObjectFill[]>;
+        addChild(file: string): void;
     }
 
     export type Plugin = (

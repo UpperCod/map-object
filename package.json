@@ -1,6 +1,6 @@
 {
     "name": "@uppercod/map-object",
-    "version": "1.0.3",
+    "version": "1.1.0",
     "description": "Api for creating plugins capable of modifying an object according to its index",
     "main": "cjs.js",
     "module": "esm.js",
