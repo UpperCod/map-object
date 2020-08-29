@@ -17,7 +17,7 @@ loadData(
         },
     },
     {
-        async $ref({ value, file }, { load }) {
+        async $ref({ value, file }, { load, addChild }) {
             const { dir } = path.parse(file);
             const src = path.join(dir, file);
             return load({

@@ -1,7 +1,7 @@
 import createTree from "@uppercod/imported";
 import { isObject, isArray, createIterable, merge } from "./utils";
 /**
- *
+ * Preconfigure the execution of mapObject and cache the function reading from the file
  * @param {data} data
  * @param {plugins} maps
  * @param {parallel} [parallel]
@@ -16,7 +16,9 @@ export default function load(data, maps, parallel = {}) {
         parallel[data.file] || mapObject(data, maps, parallel));
 }
 /**
- *
+ * This function iterates over an object generated a copy of it,
+ * this iteration allows the execution of pllugins according to
+ * the index of the iteration.
  * @param {data} data
  * @param {plugins} maps
  * @param {parallel} [parallel]
@@ -26,14 +28,17 @@ async function mapObject({ file, value, tree, root }, maps, parallel) {
     root = root || masterValue;
     for (let prop in value) {
         if (maps[prop]) {
-            /**@type {Object|Object[]} */
+            /**@type {any} */
             const commitValue = await maps[prop](
                 {
                     file,
                     value: value[prop],
                     root,
+                    tree,
                 },
                 {
+                    addChild: (child) =>
+                        child != file && tree.addChild(file, child),
                     load: async (data) => {
                         if (data.file && data.file != file)
                             tree.addChild(file, data.file);
@@ -77,13 +82,26 @@ async function mapObject({ file, value, tree, root }, maps, parallel) {
 }
 
 /**
+ * It is an object that allows to share the reading between load,
+ * caching the process associated with a file
  * @typedef {{[file:string]:Promise<data>}} parallel
  */
 
 /**
+ * It is a context associated only to the reading instance of the
+ * property and the file, it allows executing manipulations while
+ * keeping the file's reading data
+ * @typedef {Object} Context
+ * @property {(data:data)=>Promise<any>} load
+ * @property {(file:string)=>void} addChild
+ */
+
+/**
+ * The plugin allows access to the value of an object if it defines
+ * the property with which the plugin is associated
  * @callback plugin
  * @param {data} data
- * @param {{load:(data:data)=>Promise<any>}} next
+ * @param {Context} utils
  */
 
 /**
@@ -91,9 +109,10 @@ async function mapObject({ file, value, tree, root }, maps, parallel) {
  */
 
 /**
+ * This object is the interface that all plugin or load executions share
  * @typedef {Object} data
- * @property {string} file
- * @property {object|object[]} value
- * @property {object|object[]} [root]
- * @property {import("@uppercod/imported").Context} [tree]
+ * @property {string} file - filename
+ * @property {any} value - value associated with load or plugin index
+ * @property {object|object[]} [root] - Root object reference
+ * @property {import("@uppercod/imported").Context} [tree] - Import reference map
  */
