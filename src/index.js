@@ -1,128 +1,95 @@
-import yaml from "js-yaml";
-import createCache from "@uppercod/cache";
-
-const cache = createCache();
-
-const isObject = (value) => value && typeof value == "object";
-
-const isYaml = (file) => /\.(yaml|yml)$/.test(file);
-
-const isJson = (file) => /\.json$/.test(file);
-
-const parse = (code) => yaml.safeLoad(code);
-
+import createTree from "@uppercod/imported";
+import { isObject, isArray, createIterable, merge } from "./utils";
 /**
  *
- * @param {string} config.file - Name of the file to use as the basis for the relative search
- * @param {string} config.code - File code config.file
- * @param {(src)=>Promise<string>} config.mapProps - External function for file resolution
- * @param {object} parallel - object that stores recurring queries resolved in parallel, this avoids generating double read queries
+ * @param {data} data
+ * @param {plugins} maps
+ * @param {parallel} [parallel]
  */
-export default function loader({ file, code }, props) {
-    const propMaps = ["ref", ...Object.keys(props)];
-    const regPropMaps = RegExp(`^\\$(${propMaps.join("|")})$`);
-    const regMapCode = RegExp(`\\$(${propMaps.join("|")})`);
-
-    const parallel = {};
-
-    return load(
-        {
-            file,
-            code,
-            regPropMaps,
-            regMapCode,
-            mapProps: async (type, value, root, file) => ({
-                file,
-                ...(await props[type.slice(1)](value, root, file)),
-            }),
-        },
-        parallel
-    );
+export default function load(data, maps, parallel = {}) {
+    return (parallel[data.file] =
+        parallel[data.file] || mapObject(data, maps, parallel));
 }
 /**
- * @param {string} config.file - Name of the file to use as the basis for the relative search
- * @param {string} config.code - File code config.file
- * @param {(src)=>Promise<string>} config.mapProps - External function for file resolution
+ *
+ * @param {data} data
+ * @param {plugins} maps
+ * @param {parallel} [parallel]
  */
-function load({ file, code, mapProps, regPropMaps, regMapCode }, parallel) {
-    const raw = isObject(code);
-    const data = raw
-        ? code
-        : isJson(file)
-        ? JSON.parse(code)
-        : isYaml(file)
-        ? cache(parse, code)
-        : code;
-    if (raw || regMapCode.test(code)) {
-        return (parallel[file] =
-            parallel[file] ||
-            mapRef(data, regPropMaps, async (type, value, root) => {
-                let child = await mapProps(type, value, root, file);
-                if (child.file != file) {
-                    value = await load(
-                        {
-                            code: child.value,
-                            file: child.file,
-                            mapProps,
-                            regPropMaps,
-                            regMapCode,
-                        },
-                        parallel
-                    );
-                    return child.after ? child.after(value) : value;
-                }
-                return child.value;
-            }));
-    } else {
-        return data;
+async function mapObject({ file, value, tree, root }, maps, parallel) {
+    let masterValue = createIterable(value);
+    root = root || masterValue;
+    if (!tree) {
+        tree = createTree();
+        tree.add(file);
     }
-}
-
-/**
- *
- * @param {object|any[]} data - data to extract for reading from $ref
- * @param {(data:any,data:object|any[])=>Promise<any>} map - function to reduce the extraction of the $ref
- * @param {object|any[]} [root] - context to use as root to scan the $ref
- */
-async function mapRef(data, regPropMaps, map, root) {
-    // clone to remove reference from cache
-    const isArrayData = Array.isArray(data);
-    const copy = isArrayData ? [] : {};
-    for (let prop in data) {
-        if (regPropMaps.test(prop)) {
-            const value = await map(prop, data[prop], root);
-            if (isObject(value)) {
-                const nextValue = isArrayData
-                    ? data
-                    : { ...value, ...data, ...copy };
-                delete nextValue[prop];
-                const nextRoot = root == data ? nextValue : root || nextValue;
-                if (Array.isArray(value)) {
-                    return Promise.all(
-                        value.map((value) =>
-                            isObject(value)
-                                ? mapRef(value, regPropMaps, map, nextRoot)
-                                : value
-                        )
-                    );
+    for (let prop in value) {
+        if (maps[prop]) {
+            /**@type {Object|Object[]} */
+            const commitValue = await maps[prop](
+                {
+                    file,
+                    value: value[prop],
+                    root,
+                },
+                {
+                    load: async (data) => {
+                        if (data.file && data.file != file)
+                            tree.addChild(file, data.file);
+                        const { value } = await load(
+                            { file, ...data, root, tree },
+                            maps,
+                            parallel
+                        );
+                        return value;
+                    },
                 }
-                if (isObject(nextValue)) {
-                    return await mapRef(nextValue, regPropMaps, map, nextRoot);
+            );
+            if (isArray(commitValue)) {
+                if (masterValue == root) {
+                    root = masterValue = commitValue;
+                } else {
+                    masterValue = commitValue;
                 }
+                break;
             }
-            return value;
+            if (isObject(commitValue)) {
+                merge(masterValue, value, prop);
+                merge(masterValue, commitValue);
+            }
+        } else if (isObject(value[prop])) {
+            masterValue[prop] = (
+                await mapObject(
+                    { file, value: value[prop], tree, root },
+                    maps,
+                    parallel
+                )
+            ).value;
         } else {
-            if (isObject(data[prop])) {
-                copy[prop] = await mapRef(
-                    data[prop],
-                    regPropMaps,
-                    map,
-                    root || copy
-                );
-            } else {
-                copy[prop] = data[prop];
-            }
+            masterValue[prop] = value[prop];
         }
     }
-    return copy;
+    return { file, root, value: masterValue, tree };
 }
+
+/**
+ * @typedef {{[file:string]:Promise<data>}} parallel
+ */
+
+/**
+ * @callback plugin
+ * @param {data} data
+ * @param {{load:(data:data)=>Promise<any>}} next
+ */
+
+/**
+ * @typedef {{[plugin:string]:plugin}} plugins
+ */
+
+/**
+ * @typedef {Object} data
+ * @property {string} file
+ * @property {object|object[]} value
+ * @property {object|object[]} [root]
+ * @property {import("@uppercod/imported").Context} [tree]
+ */

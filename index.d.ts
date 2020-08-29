@@ -1,22 +1,24 @@
-declare module "@uppercod/yaml" {
-    interface Return {
+import { Context } from "@uppercod/imported";
+
+interface ObjectFill {
+    [index: string]: any;
+}
+
+declare module "@uppercod/map-object" {
+    export interface Data {
         file: string;
-        value: any;
-        after?: (data: any) => any;
+        value: ObjectFill | ObjectFill[];
+        root: ObjectFill | ObjectFill[];
+        tree?: Context;
     }
+    export default function load(
+        data: Data,
+        maps,
+        parallel: ObjectFill
+    ): Promise<Data>;
 
-    interface config {
-        file: string;
-        code: string;
-    }
-
-    interface Props {
-        [fn: string]: (
-            value: any,
-            data: any,
-            file: string
-        ) => Return | Promise<Return>;
-    }
-
-    export default function parse(config: config, props: Props): Promise<any>;
+    export type Plugin = (
+        data: Data,
+        load: (data: Data) => Promise<ObjectFill | ObjectFill[]>
+    ) => Promise<ObjectFill>;
 }

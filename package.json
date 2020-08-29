@@ -1,7 +1,7 @@
 {
-    "name": "@uppercod/yaml",
-    "version": "2.0.0",
-    "description": "Capture text fragments based on regular expressions that are executed for each line of the text",
+    "name": "@uppercod/map-object",
+    "version": "1.0.0",
+    "description": "Api for creating plugins capable of modifying an object according to its index",
     "main": "cjs.js",
     "module": "esm.js",
     "publishConfig": {
@@ -16,18 +16,16 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/UpperCod/yaml.git"
+        "url": "git+https://github.com/UpperCod/map-object.git"
     },
     "author": "UpperCod",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/UpperCod/yaml/issues"
+        "url": "https://github.com/UpperCod/map-object/issues"
     },
-    "homepage": "https://github.com/UpperCod/yaml#readme",
+    "homepage": "https://github.com/UpperCod/map-object#readme",
     "dependencies": {
-        "@uppercod/cache": "^1.0.0",
-        "@uppercod/get-prop": "^1.0.0",
-        "js-yaml": "^3.14.0"
+        "@uppercod/imported": "^1.1.2"
     },
     "devDependencies": {
         "@rollup/plugin-node-resolve": "^8.1.0",

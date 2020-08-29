@@ -1,4 +1,0 @@
-$ref: c/c.yaml
-label: e
-a:
-    $ref: a.yaml

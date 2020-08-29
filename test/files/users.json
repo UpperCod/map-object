@@ -1,9 +1,11 @@
 [
     {
-        "name": "Matias",
-        "alias": "@uppercod",
-        "text": {
-            "$ref": "text.txt"
-        }
+        "$ref": "user.json"
+    },
+    {
+        "$ref": "user.json"
+    },
+    {
+        "$ref": "user.json"
     }
 ]

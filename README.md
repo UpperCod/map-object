@@ -1,49 +1,32 @@
-# yaml
+# map-object
 
-This script adds a layer to [js-yaml](https://www.npmjs.com/package/js-yaml) to add support for special properties with the wildcard `$` like `$ref`, example:
+Api for creating plugins capable of modifying an object according to its index, this library is created to implement the use of `$ref`.
+
+### \$ref implementation example
 
 ```js
 import path from "path";
 import { readFile } from "fs/promises";
-import loader from "./src";
-import getProp from "@uppercod/get-prop";
+import loadData from "../../src/index";
 
-const test = async (file) =>
-    loader(
-        {
-            file,
-            code: await readFile(file, "utf-8"),
+loadData(
+    {
+        file: path.join(__dirname, "data.json"),
+        value: {
+            $ref: "files/users.json",
         },
-        {
-            async ref(value, root, file) {
-                const { dir } = path.parse(file);
-                const [, src, prop] = value.match(
-                    /([^~#]*)(?:(?:~|#\/){0,1}(.+)){0,1}/
-                );
-                if (src) {
-                    try {
-                        file = path.join(dir, src);
-                        value = await readFile(file, "utf-8");
-                    } catch (e) {
-                        return { file, value };
-                    }
-                }
-                return {
-                    file,
-                    value: src ? value : getProp(root, prop),
-                    after: prop ? (data) => getProp(data, prop) : false,
-                };
-            },
-        }
-    );
-
-test(path.join(__dirname, "./test/files/e.yaml")).then(console.log);
+    },
+    {
+        async $ref({ value, file }, { load }) {
+            const { dir } = path.parse(file);
+            const src = path.join(dir, file);
+            return load({
+                file: src,
+                value: JSON.parse(await readFile(src, "utf-8")),
+            });
+        },
+    }
+);
 ```
 
-The return `{file, value}` is strict since it allows identifying the origin of the data between reads.
-
-## Install
-
-```
-npm install @uppercod/yaml
-```
+**The execution of load inside `$ref` allows associating an additional import on the tree object returned by loadData**, the tree object is managed by the pkg [@uppercod/imported](https://github.com/UpperCod/imported).
