@@ -7,18 +7,26 @@ interface ObjectFill {
 declare module "@uppercod/map-object" {
     export interface Data {
         file: string;
-        value: ObjectFill | ObjectFill[];
-        root: ObjectFill | ObjectFill[];
+        value: any;
+        root?: ObjectFill | ObjectFill[];
         tree?: Context;
     }
     export default function load(
         data: Data,
-        maps,
-        parallel: ObjectFill
+        maps: Plugins,
+        parallel?: ObjectFill
     ): Promise<Data>;
+
+    export interface PluginContext {
+        load(data: Data): Promise<ObjectFill | ObjectFill[]>;
+    }
 
     export type Plugin = (
         data: Data,
-        load: (data: Data) => Promise<ObjectFill | ObjectFill[]>
+        context: PluginContext
     ) => Promise<ObjectFill>;
+
+    export interface Plugins {
+        [prop: string]: Plugin;
+    }
 }

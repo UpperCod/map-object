@@ -7,6 +7,11 @@ import { isObject, isArray, createIterable, merge } from "./utils";
  * @param {parallel} [parallel]
  */
 export default function load(data, maps, parallel = {}) {
+    if (!data.tree) {
+        const tree = createTree();
+        tree.add(data.file);
+        data.tree = tree;
+    }
     return (parallel[data.file] =
         parallel[data.file] || mapObject(data, maps, parallel));
 }
@@ -19,10 +24,6 @@ export default function load(data, maps, parallel = {}) {
 async function mapObject({ file, value, tree, root }, maps, parallel) {
     let masterValue = createIterable(value);
     root = root || masterValue;
-    if (!tree) {
-        tree = createTree();
-        tree.add(file);
-    }
     for (let prop in value) {
         if (maps[prop]) {
             /**@type {Object|Object[]} */
