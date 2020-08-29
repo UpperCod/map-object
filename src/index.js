@@ -57,6 +57,9 @@ async function mapObject({ file, value, tree, root }, maps, parallel) {
             if (isObject(commitValue)) {
                 merge(masterValue, value, prop);
                 merge(masterValue, commitValue);
+            } else if (masterValue != root) {
+                masterValue = commitValue;
+                break;
             }
         } else if (isObject(value[prop])) {
             masterValue[prop] = (
