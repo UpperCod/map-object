@@ -21,7 +21,8 @@ export const createIterable = (value) => (isArray(value) ? [] : {});
  * @param {string} [exclude]
  */
 export function merge(master, commit, exclude) {
-    for (const prop in commit) {
-        if (prop != exclude) master[prop] = commit[prop];
-    }
+    let descriptors = Object.getOwnPropertyDescriptors(commit);
+    if (exclude) delete descriptors[exclude];
+    Object.defineProperties(master, descriptors);
+    return master;
 }
