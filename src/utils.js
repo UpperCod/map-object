@@ -2,7 +2,8 @@
  * Determines if a value is of type "object"
  * @param {any} value
  */
-export const isObject = (value) => value && typeof value == "object";
+export const isObject = (value) =>
+    value && {}.toString.call(value) == "[object Object]";
 /**
  * Determines if a value is of type Array
  * @param {any} value
